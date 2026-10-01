@@ -13,24 +13,38 @@ Etiketler: **[makale]** = makalenin bildirdiği, **[kod]** = QPOML açık kodund
    sunulmuş değiller.
 
 ## 1. QPOML — Kiker, Steiner, Garraffo, Méndez, Zhang (2023, MNRAS 524, 4801)
-Tam metni okuyamadım: konteynerden arxiv.org ve academic.oup.com erişimi engelli. Aşağıdakiler
-özet düzeyinde (arama sonuçları) ve açık kod deposundan (github.com/thissop/QPOML, son
-commit 2023-02-12). **Kod deposu makalede kullanılan sürümle aynı olmayabilir.**
+Tam metin okundu: arXiv:2306.04055v1 (preprint, 8 Haziran 2023; MNRAS'ta yayımlanan sürümden
+küçük farklar olabilir). Ayrıca açık kod deposu incelendi (github.com/thissop/QPOML, son commit
+2023-02-12; makalede kullanılan sürümle aynı olmayabilir).
 
-- [makale, özet] Kaynaklar: kara delikli LMXB'ler GRS 1915+105 (RXTE) ve MAXI J1535−571 (NICER).
-- [makale, özet] Girdi: yeniden gruplanmış ham enerji spektrumu veya spektral fitten türetilmiş
-  özellikler. Çıktı: QPO var/yok (sınıflandırma) ve QPO frekans/genişlik/genlik (regresyon).
-  Ağaç tabanlı klasik ML modelleri.
-- [makale, özet] Yazarlar NS LFQPO ve kHz QPO'ları da içeren bir takip çalışması yürüttüklerini
-  belirtmiş. **Yenilik riski: yayımlanıp yayımlanmadığını ADS'de kontrol etmeliyiz.** [doğrulanmadı]
-- [kod] `main.py::load`: min-max ölçekleme train/test ayrımından *önce*, tüm veri üzerinde.
-  Ağaçlar için monoton dönüşüm zararsız; doğrusal/kNN modellerde hafif sızıntı.
-- [kod] `main.py::evaluate`: `train_test_split` ile gözlem düzeyinde *rastgele* ayrım (varsayılan %10 test).
-  Zamanca yakın gözlemler hem train hem test'e düşebilir → zamansal bağımlılık sorusu.
-- [kod] Çok çıkışlı regresyon: QPO özellikleri frekansa göre sıralanıp düzleştiriliyor, eksik QPO 0 ile
-  dolduruluyor (normalize değerler [0.1, 1] aralığında).
+- [makale §2.1] GRS 1915+105: RXTE/PCA; Zhang+2020'nin 625 zamanlama gözleminden 554'ünün eşleşen
+  enerji spektrumu var. PDS: 128 s aralıklar, 1/128 s çözünürlük, Leahy normalize, Poisson çıkarılmış.
+  Sadece QPO'lu gözlemler kullanılmış (yalnız regresyon, sadece temel QPO).
+- [makale §2.2, §3.2] MAXI J1535−571: NICER. QPO tespiti: iki sıfır-merkezli Lorentzian + 1–20 Hz'de
+  268 frekansta üçüncü Lorentzian taraması, AIC eşiği, **son kabul görsel inceleme ile**.
+  68 gözlemde temel+harmonik, 14 gözlemde yalnız temel, 188 gözlemde QPO yok.
+- [makale §3.2] Anlamlılık kriteri (GRS 1915+105): güç integrali / 1σ hata > 3 *veya* Q > 2.
+- [makale §4.2] Girdiler: (a) mühendislik özellikleri: net sayım hızı, sertlik oranı, Γ, nthcomp
+  normalizasyonu, iç disk sıcaklığı, diskbb normalizasyonu; (b) 0.5–10 keV'de 0.5 keV'lik 19 kanal
+  (yalnız NICER; RXTE'de kazanç kayması nedeniyle ham spektrum kullanılmamış). Çıktı: frekansa göre
+  sıralı (ν, FWHM, normalizasyon) vektörü, eksik QPO = 0, diğerleri min-max ile [0.1, 1].
+- [makale §4.3, dipnot 3] %90/%10 ayrım + 5 kez tekrarlanan 10-katlı **rastgele** (MAXI J1535 için
+  tabakalı) çapraz doğrulama. Min-max ölçekleme ayrımdan önce yapılmış; yazarlar bunu XSPEC
+  parametre sınırlarının sabit olmasıyla gerekçelendiriyor.
+- [makale §5] Regresyonda extra trees > random forest > decision tree > doğrusal. MAXI J1535 için
+  var/yok sınıflandırması "oldukça kolay"; lojistik regresyon random forest kadar iyi.
+  Ham spektrum girdisi, mühendislik özelliklerinden belirgin biçimde kötü.
+- [makale §6] Yazarların önerileri: (i) Corral-Santana+2016 ölçeğinde standart bir QPO + spektral
+  veri tabanı (RXTE arşivi bunun için değerli), (ii) NS LFQPO ve kHz QPO'ları içeren takip çalışması,
+  (iii) çok kaynaklı analiz için **tek aletten, aynı şekilde yeniden işlenmiş** veri (§6.2: farklı
+  aletler ve farklı QPO tanımlama yöntemleri karıştırılırsa bunu bir tür veri sızıntısı sayıyorlar),
+  (iv) dışarıda tutulan patlamalarda (outburst) test. Bu, hocanın e-postasındaki yönle örtüşüyor.
+- [makale §6] **Yenilik riski:** yazarlar NS takip çalışması planlıyor. Yayımlanıp yayımlanmadığını
+  ADS'de kontrol etmeliyiz (bu konteynerden arXiv/ADS erişimi yok). [doğrulanmadı]
 - [kod] `qpos_per_obs` hesabında `i != 0.1` koşulu dolgu değeri 0 iken gözlem başına QPO sayısını
   doğru saymıyor gibi görünüyor (tabakalama için). Makaledeki sürümde durum farklı olabilir. [doğrulanmadı]
+- [bizim] Başlık notu: QPOML'de QPO, PDS fitiyle tespit ediliyor; ML modeli onu enerji spektrumundan
+  *tahmin* ediyor. "ML ile tespit" ifadesi ölçülen şeyi abartıyor.
 
 ## 2. Sanna, Méndez, Belloni, Altamirano (2012, MNRAS 424, 2936) — 4U 1636−53 kHz QPO
 - [makale §2] 2010 Mayıs'a kadarki tüm RXTE/PCA gözlemleri: 1280 gözlem, ~3.5 Ms.
@@ -88,3 +102,23 @@ Tez katmanları:
 3. QPOML yazarlarının NS takip çalışmasından haberdar mı? Çakışma riski.
 4. "Daha zor sistemler" ile kastedilen ne (pulsarlar, mHz QPO, düşük sayımlı kaynaklar)?
 5. Hesaplama kaynağı ve HEASoft kurulumu.
+
+## 7. Başvuru formu için başlık önerileri (2026-10-01)
+Formdaki tek alan: "Bitirme Çalışmasının Konusu" (uzunluk sınırı belirtilmemiş).
+Başlık bir şemsiye; araştırma sorusu ayrıca ve dar tanımlanacak.
+
+Olası çalışmalar: (1) 4U 1636−53 kHz QPO + QPOML; (2) yalnız işlenmiş katalog; (3) mHz QPO;
+(4) pulsar QPO'ları (çoğu HMXB); (5) NS+BH kaynaklar arası genelleme (QPOML §6); (6) yöntem geliştirme.
+
+| Başlık | 1 | 2 | 3 | 4 | 5 | 6 |
+|---|---|---|---|---|---|---|
+| A. X-ışını Çift Sistemlerinde Yarı-Periyodik Salınımların Arşiv Verileri ve Makine Öğrenmesi ile İncelenmesi (önerilen) | ✓ | ~ | ✓ | ✓ | ✓ | ✓ |
+| B. X-ışını Çift Sistemlerinde Yarı-Periyodik Salınımların Veri Odaklı İncelenmesi | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| C. Nötron Yıldızlı X-ışını Çift Sistemlerinde ... (A'nın NS'ye daraltılmışı) | ✓ | ~ | ✓ | ✓ | ✗ | ✓ |
+| QPOML tarzı: NS LMXB'lerde QPO'ların ML ile Tespiti ve Karakterizasyonu | ✓ | ✗ | ✓ | ✗ | ✗ | ~ |
+
+~ = ML hiç kullanılmazsa başlık hafif abartılı kalır.
+İngilizce: A. "Investigation of Quasi-Periodic Oscillations in X-ray Binaries Using Archival Data and
+Machine Learning"; B. "A Data-Driven Investigation of Quasi-Periodic Oscillations in X-ray Binaries".
+Hocaya teyit ettirilecek: terim tercihi (X-ışını/X-ışın çiftleri, yarı-periyodik salınım) ve başlığın
+sonradan değiştirilip değiştirilemeyeceği (İTÜ kuralını bilmiyorum).
